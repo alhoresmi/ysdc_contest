@@ -58,11 +58,7 @@ def setup():
     """
     N, max_tips, cost_c = [int(v) for v in get_data().strip().split(' ')]
 
-    lines = []
-    for i in range(N):
-        lines.append(get_data())
-
-    city = [[1 if v == '.' else 0 for v in line.strip()] for line in lines]
+    city = [[1 if v == '.' else 0 for v in get_data().strip()] for _ in range(N)]
 
     nT, nD = [int(v) for v in get_data().strip().split(' ')]
 
@@ -238,7 +234,7 @@ def dispatch():
 if __name__ == "__main__":
     # set debug = False before sending solution to yandex
     debug = True
-    task_id = "01"
+    task_id = "02"
     
     # initialize source
     if debug:
