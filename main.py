@@ -2,13 +2,15 @@ import sys
 from queue import PriorityQueue
 from math import sqrt, log10
 import time
+import random
 
 
 class Rover:
-    def __init__(self, pR, state):
+    def __init__(self, pR, state, idx):
         self.pR = pR
         self.state = state
         self.task = ""
+        self.idx = idx
 
     def update(self):
         if len(self.task) < 60:
@@ -17,12 +19,14 @@ class Rover:
         dx, dy = route_to_xy(self.task[:60])
         self.pR[0] += dx
         self.pR[1] += dy
-        if self.task[59] == 'S' or self.task[59] == 'P':
+        if (self.task[59] == 'S' or self.task[59] == 'P') and len(self.task) == 60:
             self.state = 'S'
             self.task = 'S'*60
         else:
             self.state = 'P'
             self.task = self.task[60:]
+
+        print(f"ROVER UPDATE {self.idx} {self.pR}")
 
 
 class Order:
@@ -32,6 +36,46 @@ class Order:
         self.length = 0
         self.time = 0
         self.path = ""
+
+
+class Orders:
+    def __init__(self, nrovers):
+        self.chains = []
+        self.empty_chains = nrovers
+        for _ in range(nrovers):
+            self.chains.append([])
+
+    def put(self, order):
+        mdist = 2*N
+        midx = 0
+        if self.empty_chains > 0:
+            for i in range(nrovers):
+                if self.chains[i] == [] and rvs[i].state != 'P':
+                    self.chains[i].append(order)
+                    self.empty_chains -= 1
+                    break
+        else:
+            i = 0
+            for chain in self.chains:
+                if chain != []:
+                    if dist(order.pT, chain[-1].pP) < mdist:
+                        mdist = dist(order.pT, chain[-1].pP)
+                        midx = i
+                i += 1
+
+            self.chains[midx].append(order)
+
+    def pop(self, rover_idx):
+        o = self.chains[rover_idx].pop(0)
+        if self.chains[rover_idx] == []:
+            self.empty_chains += 1
+        return o
+
+    def print_chains(self):
+        for i in range(nrovers):
+            print(f"chain {i}")
+            for o in self.chains[i]:
+                print(f"{o.pT}->{o.pP}")
 
 
 class Map:
@@ -84,7 +128,7 @@ def how_much_rovers(N, max_tips, cost_c):
 def rovers_init(nrovers, N, max_tips, cost_c):
     rvs = []
     for i in range(nrovers):
-        rvs.append(Rover([2, 2], 'S'))
+        rvs.append(Rover([2, 2], 'S', i))
 
     d = {
         '4_20_10': [1, 1],
@@ -189,11 +233,26 @@ def route_to_xy(s):
     return dx, dy
 
 
-def dispatch():
-    if debug:
-        print(city)
+def create_task(rover, order_chain):
+    task = []
+    if order_chain == []:
+        task = 60*'S'
+    else:
+        #for o in order_chain:
+        #    task_tmp = path_to_directions(search(city, tuple(rover.pR), o.pT)) + 'T' + o.path + 'P'
+        #    task.append(task_tmp)
+        o = order_chain.pop(0)
+        print(f"ROVER PATH {rover.idx}@{rover.pR} -> order {o.pT}")
+        task = path_to_directions(search(city, tuple(rover.pR), o.pT)) +'T' + o.path + 'P'
+    #task = "".join(task)
+    return task
 
-    orders = []
+
+def dispatch():
+    #if debug:
+    #    print(city)
+
+    orders = Orders(nrovers)
 
     for t in range(nT):
         # 1 get fresh orders
@@ -201,40 +260,36 @@ def dispatch():
         if n0 > 0:
             for i in range(n0):
                 o = create_order(get_data())
-                orders.append(o)
+                orders.put(o)
+                print(f"{o.pT}->{o.pP}")
+        print(f"iter {t}, orders {n0}")
+        orders.print_chains()
 
         # 2 assign orders to rovers and send commands
-        # remove SSSSS from rover task and append path for next order
-        # create chains of orders
-        # assign closest order?
         for rv in rvs:
-            if rv.state == 'S' and len(orders) > 0:
-                #o, orders, tip = closest_order(rv, orders, 10)
-                o = orders.pop(0)
-                rv.task = o.path #bfs_route((rv.x, rv.y), (o[0], o[1]), (o[2], o[3]))
+            if rv.state == 'S' and len(orders.chains[rv.idx]) > 0:
+                #o = orders.pop(rv.idx)
+                rv.task = create_task(rv, orders.chains[rv.idx])
                 rv.state = 'P'
 
         # 3 update everything (rovers and orders)
         # orders that are not assigned
-        for o in orders:
-            o.time += 60
+        #for o in orders:
+        #    o.time += 60
         # rovers
         for rv in rvs:
-            if rv.state == 'P':
-               rv.update()
-            else:
-                print(60*"S")
-
-    if debug:
-        for o in orders:
-            print(f"from {o.pT} to {o.pP}. path: {o.path}, length: {o.length}, time: {o.time}")
+            #if rv.state == 'P':
+            #   rv.update()
+            #else:
+            #    print(60*"S")
+            rv.update()
 
 
 
 if __name__ == "__main__":
     # set debug = False before sending solution to yandex
     debug = True
-    task_id = "02"
+    task_id = "03"
     
     # initialize source
     if debug:
