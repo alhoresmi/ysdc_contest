@@ -1,4 +1,5 @@
 # TODO
+0. local evaluation  
 1. simple routing for problems 1-5. astar isnt fast enough (my implementation) so i cant deliver all orders, rovers dont pay off
 2. chains of orders, so rover can take next order faster and without idling
 3. astar heuristic optimization for city (problems 6-10)
