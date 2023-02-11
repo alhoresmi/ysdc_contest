@@ -1,5 +1,6 @@
 import sys
 from queue import PriorityQueue
+import heapq
 from math import sqrt, log10
 import time
 import random
@@ -193,23 +194,26 @@ def pdelta(p1, p2):
 def search(grid, start, target, flag=False):
     height = len(grid)
     width = len(grid[0])
-    queue = PriorityQueue()
-    queue.put((0, [start]))
+    #queue = PriorityQueue()
+    #queue.put((0, [start]))
+    queue = []
+    heapq.heappush(queue, (0, [start]))
     seen = set([start])
-    while queue:
-        priority, path = queue.get()
+    mdist = width*height
+    while heapq:#queue:
+        priority, path = heapq.heappop(queue)#queue.get()
         x, y = path[-1]
         if x == target[0] and y == target[1]:
             return path
-        mdist = width*height
         for x2, y2 in ((x+1, y), (x-1, y), (x, y+1), (x, y-1)):
             if 0 <= x2 < width and 0 <= y2 < height and grid[x2][y2] != 0 and (x2, y2) not in seen:
                 # cost for direction change
-                if len(path) > 1:
-                    c = pdelta((x2, y2), (x, y)) == pdelta(path[-1], path[-2])
-                    c = 0 if c else 1
-                else:
-                    c = 0
+                #if len(path) > 1:
+                #    c = pdelta((x2, y2), (x, y)) == pdelta(path[-1], path[-2])
+                #    c = 0 if c else 1
+                #else:
+                #    c = 0
+                c = 0
 
                 # h estimated distance to target
                 h = dist((x2, y2), target)
@@ -217,7 +221,8 @@ def search(grid, start, target, flag=False):
                 # g path length so far
                 g = pow(len(path), 1-10/len(grid))
 
-                queue.put((h+g+c, path + [(x2, y2)]))
+                #queue.put((h+g+c, path + [(x2, y2)]))
+                heapq.heappush(queue, (h+g+c, path+[(x2, y2)]))
                 seen.add((x2, y2))
 
 
@@ -303,8 +308,6 @@ def dispatch():
 
         if time.time() - t0 > 20:
             break
-        #if debug:
-        #    input()
 
 if __name__ == "__main__":
     # set debug = False before sending solution to yandex
