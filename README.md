@@ -1,8 +1,11 @@
 # TODO
+0. local evaluation  
 1. simple routing for problems 1-5. astar isnt fast enough (my implementation) so i cant deliver all orders, rovers dont pay off
 2. chains of orders, so rover can take next order faster and without idling
 3. astar heuristic optimization for city (problems 6-10)
 4. caching tracks between quadrants for large number of orders it can save a lot of computations
+5. fix errors: wrong answer Rover 9 can't finish order 830 at iteration 619 because he does not reach destination yet. maybe the reason is multiple orders at one position. dispatcher give the rover one order, but simulator/evaluator gives other (first appeared at position)
+
 
 # ysdc_contest
 202109 contest on dispatching rovers https://contest.yandex.ru/contest/28643
